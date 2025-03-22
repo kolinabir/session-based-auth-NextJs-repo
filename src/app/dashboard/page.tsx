@@ -15,28 +15,28 @@ function Dashboard() {
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  // Improved logout handler with better error handling and state management
-  const handleLogout = async () => {
+  // Modified logout handler for immediate redirection
+  const handleLogout = () => {
     try {
       setIsLoggingOut(true);
       console.log("Starting logout process...");
 
-      // Dispatch logout action
-      await dispatch(logoutUser()).unwrap();
-
       // Clear any stored authentication data
       localStorage.removeItem("auth_last_checked");
 
-      console.log("Logout successful, redirecting to login page");
+      // Immediately redirect to login page
       router.push("/auth/login");
+
+      // Dispatch logout action after redirect is initiated
+      // This ensures the UI transition happens immediately without waiting for API
+      dispatch(logoutUser()).catch((error) => {
+        console.error("Logout API call failed:", error);
+        dispatch(manualLogout());
+      });
     } catch (error) {
       console.error("Logout failed:", error);
-
-      // Fallback: manually clear the auth state if the API call fails
       dispatch(manualLogout());
       router.push("/auth/login");
-    } finally {
-      setIsLoggingOut(false);
     }
   };
 

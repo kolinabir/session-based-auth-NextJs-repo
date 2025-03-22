@@ -160,14 +160,16 @@ const authSlice = createSlice({
         state.user = null;
       })
 
-      // Login cases
+      // Login cases with improved handling
       .addCase(loginUser.pending, (state) => {
         state.status = "loading";
+        state.error = null; // Clear previous errors when starting a new login attempt
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.status = "succeeded";
         state.isAuthenticated = true;
         state.user = action.payload.user;
+        state.error = null;
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.status = "failed";
@@ -188,8 +190,11 @@ const authSlice = createSlice({
         state.error = action.error.message || "Registration failed";
       })
 
-      // Updated logout cases
+      // Updated logout cases with immediate state clearing
       .addCase(logoutUser.pending, (state) => {
+        // Immediately clear auth state on logout attempt
+        state.isAuthenticated = false;
+        state.user = null;
         state.status = "loading";
       })
       .addCase(logoutUser.fulfilled, (state) => {

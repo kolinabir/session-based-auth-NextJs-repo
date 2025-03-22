@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import { loginUser, clearError } from "@/lib/redux/features/auth/authSlice";
@@ -12,16 +12,29 @@ export default function LoginForm() {
   const [password, setPassword] = useState("");
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
+  const [loginAttempted, setLoginAttempted] = useState(false);
 
-  const { status, error } = useSelector((state: RootState) => state.auth);
+  const { status, error, isAuthenticated } = useSelector(
+    (state: RootState) => state.auth
+  );
+
+  // Listen for authentication state changes to redirect after successful login
+  useEffect(() => {
+    if (loginAttempted && isAuthenticated && status === "succeeded") {
+      router.push("/dashboard");
+    }
+  }, [isAuthenticated, status, router, loginAttempted]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoginAttempted(true);
+
     try {
       await dispatch(loginUser({ email, password })).unwrap();
-      router.push("/dashboard");
+      // The redirect will happen in the useEffect above
     } catch (err) {
       console.error("Failed to login:", err);
+      setLoginAttempted(false);
     }
   };
 
