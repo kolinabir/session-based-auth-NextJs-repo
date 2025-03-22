@@ -2,9 +2,10 @@
 
 import { useSelector, useDispatch } from "react-redux";
 import { RootState, AppDispatch } from "@/lib/redux/store";
-import { logoutUser } from "@/lib/redux/features/auth/authSlice";
+import { logoutUser, manualLogout } from "@/lib/redux/features/auth/authSlice";
 import { useRouter } from "next/navigation";
 import withAuth from "@/components/auth/withAuth";
+import { useState } from "react";
 
 function Dashboard() {
   const { user, isAuthenticated, status } = useSelector(
@@ -12,11 +13,31 @@ function Dashboard() {
   );
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
+  // Improved logout handler with better error handling and state management
   const handleLogout = async () => {
-    await dispatch(logoutUser());
-    localStorage.removeItem("auth_last_checked");
-    router.push("/auth/login");
+    try {
+      setIsLoggingOut(true);
+      console.log("Starting logout process...");
+
+      // Dispatch logout action
+      await dispatch(logoutUser()).unwrap();
+
+      // Clear any stored authentication data
+      localStorage.removeItem("auth_last_checked");
+
+      console.log("Logout successful, redirecting to login page");
+      router.push("/auth/login");
+    } catch (error) {
+      console.error("Logout failed:", error);
+
+      // Fallback: manually clear the auth state if the API call fails
+      dispatch(manualLogout());
+      router.push("/auth/login");
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   // Add console log to check component rendering
@@ -35,9 +56,12 @@ function Dashboard() {
             </span>
             <button
               onClick={handleLogout}
-              className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md text-sm"
+              disabled={isLoggingOut}
+              className={`${
+                isLoggingOut ? "bg-gray-500" : "bg-red-600 hover:bg-red-700"
+              } text-white py-2 px-4 rounded-md text-sm transition-colors`}
             >
-              Logout
+              {isLoggingOut ? "Logging out..." : "Logout"}
             </button>
           </div>
         </div>
@@ -89,5 +113,4 @@ function Dashboard() {
   );
 }
 
-// Export Dashboard component directly first for debugging
-export default Dashboard;
+export default withAuth(Dashboard);

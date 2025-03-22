@@ -96,10 +96,26 @@ export const registerUser = createAsyncThunk(
   }
 );
 
-export const logoutUser = createAsyncThunk("auth/logout", async () => {
-  await axios.get(`${API_BASE_URL}/auth/logoutExtension`);
-  return null;
-});
+// Updated logout thunk with better error handling
+export const logoutUser = createAsyncThunk(
+  "auth/logout",
+  async (_, { rejectWithValue }) => {
+    try {
+      console.log("Logging out user...");
+      const response = await axios.get(`${API_BASE_URL}/auth/logoutExtension`);
+      console.log("Logout response:", response);
+
+      // Clear any auth related data in localStorage
+      localStorage.removeItem("auth_last_checked");
+
+      return null;
+    } catch (error: any) {
+      console.error("Logout error:", error.response?.data || error.message);
+      // Even if the server request fails, we should clear the local auth state
+      return null;
+    }
+  }
+);
 
 // Auth slice
 const authSlice = createSlice({
@@ -115,6 +131,12 @@ const authSlice = createSlice({
       if (!action.payload) {
         state.user = null;
       }
+    },
+    // Manual logout for cases where the API fails
+    manualLogout: (state) => {
+      state.isAuthenticated = false;
+      state.user = null;
+      state.status = "idle";
     },
   },
   extraReducers: (builder) => {
@@ -166,8 +188,18 @@ const authSlice = createSlice({
         state.error = action.error.message || "Registration failed";
       })
 
-      // Logout case
+      // Updated logout cases
+      .addCase(logoutUser.pending, (state) => {
+        state.status = "loading";
+      })
       .addCase(logoutUser.fulfilled, (state) => {
+        state.isAuthenticated = false;
+        state.user = null;
+        state.status = "idle";
+        state.error = null;
+      })
+      .addCase(logoutUser.rejected, (state) => {
+        // Even if the server request fails, clear the auth state on the client
         state.isAuthenticated = false;
         state.user = null;
         state.status = "idle";
@@ -175,5 +207,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { clearError, setAuthenticated } = authSlice.actions;
+export const { clearError, setAuthenticated, manualLogout } = authSlice.actions;
 export default authSlice.reducer;
