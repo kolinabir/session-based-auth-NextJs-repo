@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
-import { loginUser, clearError } from "@/lib/redux/features/auth/authSlice";
+import { loginUser } from "@/lib/redux/features/auth/authSlice";
 import { AppDispatch, RootState } from "@/lib/redux/store";
 import Link from "next/link";
 
@@ -137,7 +137,7 @@ export default function LoginForm() {
 
       <div className="mt-6 text-center">
         <p className="text-sm text-gray-600 dark:text-gray-400">
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <Link
             href="/auth/register"
             className="font-medium text-blue-600 hover:text-blue-500"

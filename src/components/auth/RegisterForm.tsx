@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
-import { registerUser, clearError } from "@/lib/redux/features/auth/authSlice";
+import { registerUser } from "@/lib/redux/features/auth/authSlice";
 import { AppDispatch, RootState } from "@/lib/redux/store";
 import Link from "next/link";
 

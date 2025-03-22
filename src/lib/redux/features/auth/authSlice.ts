@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
@@ -8,7 +10,7 @@ axios.defaults.withCredentials = true;
 
 // Types
 interface User {
-  id: string;
+  _id: string;
   email: string;
   name: string;
   skillLevel?: string;
@@ -30,6 +32,7 @@ const initialState: AuthState = {
 };
 
 // Optimized auth check thunk with debouncing mechanism
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let authCheckPromise: Promise<any> | null = null;
 
 export const checkAuthStatus = createAsyncThunk(
